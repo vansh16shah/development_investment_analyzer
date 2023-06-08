@@ -6,6 +6,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+# Logo
+st.image("creospan_weblogo.png", use_column_width=True)
+
+
 # Title and introduction
 st.title("AI Project Evaluation Tool")
 st.write("""
