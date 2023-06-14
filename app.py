@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+import copy
 
 
 # Logo
@@ -130,43 +132,65 @@ st.plotly_chart(fig)
 # Save and load scenarios
 st.write("## Save and Load Scenarios")
 
-# Input for scenario name
-scenario_name = st.text_input("Scenario name")
 
-# Button to save scenario
-if st.button("Save scenario"):
-    # Save values to a JSON file
-    scenario = {var: val for var, val in zip(variables, values)}
-    with open(f"{scenario_name}.json", "w") as f:
-        json.dump(scenario, f)
-    st.write(f"Scenario '{scenario_name}' saved.")
+# Save and Load Scenarios
+scenario_data = {}
 
-# Button to load scenario
-if st.button("Load scenario"):
-    # Load values from a JSON file
-    try:
-        with open(f"{scenario_name}.json", "r") as f:
-            scenario = json.load(f)
-        for var, val in scenario.items():
-            st.write(f"{var}: {val}")
-        st.write(f"Scenario '{scenario_name}' loaded.")
-    except FileNotFoundError:
-        st.write(f"Scenario '{scenario_name}' not found.")
+# Function to save a scenario
+def save_scenario(name, data):
+    scenario_data[name] = copy.deepcopy(data)
+    with open("scenarios.json", "w") as file:
+        json.dump(scenario_data, file)
+
+# Function to load a scenario
+def load_scenario(name):
+    global scenario_data  # Add this line to access the global scenario_data dictionary
+    with open("scenarios.json", "r") as file:
+        scenario_data = json.load(file)
+        if name in scenario_data:
+            return scenario_data[name]
+        else:
+            st.error("Scenario not found!")
 
 
-# Correlation matrix
-#st.write("## Correlation Matrix")
-#variables = ["E", "F", "C", "R", "Tb", "CS", "SG", "AR"]
-#values = [E, F, C, R, Tb, CS, SG, AR]
-#df = pd.DataFrame(np.column_stack([values]), columns=variables)
-#corrMatrix = df.corr()
-#sns.heatmap(corrMatrix, annot=True)
-#st.pyplot()
+# Save scenario
+save_button = st.button("Save Scenario")
 
-hide_streamlit_style = """
-            <style>
-            footer {visibility: hidden;}
-            </style>
-            """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+if save_button:
+    scenario_name = st.text_input("Enter a name for the scenario:")
+    if scenario_name:
+        scenario_data[scenario_name] = {
+            "E": E,
+            "F": F,
+            "C": C,
+            "R": R,
+            "Tb": Tb,
+            "CS": CS,
+            "SG": SG,
+            "AR": AR,
+            "NP": NP,
+            "MC": MC,
+            "TC": TC,
+            "RR": RR,
+            "SA": SA,
+            "INP": INP,
+            "MRA": MRA
+        }
 
+        with open("scenarios.json", "w") as file:
+            json.dump(scenario_data, file, indent=4)
+
+        st.success("Scenario saved successfully!")
+
+
+# Load scenario dropdown
+load_button = st.button("Load Scenario")
+
+if load_button:
+    with open("scenarios.json", "r") as file:
+        scenario_data = json.load(file)
+    
+    scenario_names = [name for name in scenario_data.keys() if not isinstance(scenario_data[name], dict)]
+    scenario_name = st.selectbox("Select a scenario to load:", scenario_names)
+    if scenario_name:
+        loaded_data = scenario_data[scenario_name]
