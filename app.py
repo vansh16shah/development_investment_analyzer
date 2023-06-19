@@ -10,7 +10,7 @@ import copy
 
 
 # Logo
-st.image("creospan_weblogo.png", use_column_width=True)
+st.image("creospan_logo_main.png", use_column_width=True)
 
 
 # Title and introduction
@@ -21,27 +21,54 @@ This tool helps you make the decision on whether your company should build new A
 
 # Input sliders for each variable
 E = st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, 200.0)
-F = st.sidebar.slider("Risk of failure (F) as a fraction", 0.0, 1.0, 0.1)
-C = st.sidebar.slider("Cost of the project (C) per month in $1000s", 0.0, 100.0, 10.0)
-R = st.sidebar.slider("Expected revenue from selling the tool (R) per year in $1000s", 0.0, 1000.0, 200.0)
-Tb = st.sidebar.slider("Time to build the tool internally (Tb) in months", 1, 48, 12)
-CS = st.sidebar.slider("Potential impact on customer satisfaction (CS) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-SG = st.sidebar.slider("Alignment with strategic goals (SG) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-AR = st.sidebar.slider("Availability of resources (AR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-NP = st.sidebar.slider("Number of People (NP) on a scale of 1 to 100", 1, 10000, 1)
-MC = st.sidebar.slider("Market Competition (MC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-TC = st.sidebar.slider("Technical Complexity (TC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-RR = st.sidebar.slider("Regulatory Risks (RR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-SA = st.sidebar.slider("Skills Availability (SA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-INP = st.sidebar.slider("Impact of Not Doing the Project (INP) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-MRA = st.sidebar.slider("Market Readiness and Acceptance (MRA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_E = st.sidebar.slider("Weight for E", 0.0, 1.0, 1.0)
 
+F = st.sidebar.slider("Risk of failure (F) as a fraction", 0.0, 1.0, 0.1)
+W_F = st.sidebar.slider("Weight for F", 0.0, 1.0, 1.0)
+
+C = st.sidebar.slider("Cost of the project (C) per month in $1000s", 0.0, 100.0, 10.0)
+W_C = st.sidebar.slider("Weight for C", 0.0, 1.0, 1.0)
+
+R = st.sidebar.slider("Expected revenue from selling the tool (R) per year in $1000s", 0.0, 1000.0, 200.0)
+W_R = st.sidebar.slider("Weight for R", 0.0, 1.0, 1.0)
+
+Tb = st.sidebar.slider("Time to build the tool internally (Tb) in months", 1, 48, 12)
+W_Tb = st.sidebar.slider("Weight for Tb", 0.0, 1.0, 1.0)
+
+CS = st.sidebar.slider("Potential impact on customer satisfaction (CS) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_CS = st.sidebar.slider("Weight for CS", 0.0, 1.0, 1.0)
+
+SG = st.sidebar.slider("Alignment with strategic goals (SG) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_SG = st.sidebar.slider("Weight for SG", 0.0, 1.0, 1.0)
+
+AR = st.sidebar.slider("Availability of resources (AR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_AR = st.sidebar.slider("Weight for AR", 0.0, 1.0, 1.0)
+
+NP = st.sidebar.slider("Number of People (NP) on a scale of 1 to 100", 1, 10000, 1)
+W_NP = st.sidebar.slider("Weight for NP", 0.0, 1.0, 1.0)
+
+MC = st.sidebar.slider("Market Competition (MC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_MC = st.sidebar.slider("Weight for MC", 0.0, 1.0, 1.0)
+
+TC = st.sidebar.slider("Technical Complexity (TC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_TC = st.sidebar.slider("Weight for TC", 0.0, 1.0, 1.0)
+
+RR = st.sidebar.slider("Regulatory Risks (RR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_RR = st.sidebar.slider("Weight for RR", 0.0, 1.0, 1.0)
+
+SA = st.sidebar.slider("Skills Availability (SA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_SA = st.sidebar.slider("Weight for SA", 0.0, 1.0, 1.0)
+
+INP = st.sidebar.slider("Impact of Not Doing the Project (INP) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_INP = st.sidebar.slider("Weight for INP", 0.0, 1.0, 1.0)
+
+MRA = st.sidebar.slider("Market Readiness and Acceptance (MRA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
+W_MRA = st.sidebar.slider("Weight for MRA", 0.0, 1.0, 1.0)
 
 # Calculate net gain and time-adjusted gain
-# G = E - F*C*Tb + R + CS + SG + AR
-# G_prime = G / Tb
-G = E - F*C*Tb + R + CS + SG + AR + NP + MC + TC + RR + SA + INP + MRA
+G = W_E*E - W_F*F*W_C*C*W_Tb*Tb + W_R*R + W_CS*CS + W_SG*SG + W_AR*AR + W_NP*NP + W_MC*MC + W_TC*TC + W_RR*RR + W_SA*SA + W_INP*INP + W_MRA*MRA
 G_prime = G / Tb
+
 
 
 # Display results
