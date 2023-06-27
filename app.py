@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import copy
+import time
+
 
 
 # Logo
@@ -21,52 +23,58 @@ This tool helps you make the decision on whether your company should build new A
 
 # Input sliders for each variable
 E = st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, 200.0)
-W_E = st.sidebar.slider("Weight for E", 0.0, 1.0, 1.0)
+W_E = st.sidebar.slider("Weight for E", 1.0, 5.0, 1.0)
 
 F = st.sidebar.slider("Risk of failure (F) as a fraction", 0.0, 1.0, 0.1)
-W_F = st.sidebar.slider("Weight for F", 0.0, 1.0, 1.0)
+W_F = st.sidebar.slider("Weight for F", 1.0, 5.0, 1.0)
 
-C = st.sidebar.slider("Cost of the project (C) per month in $1000s", 0.0, 100.0, 10.0)
-W_C = st.sidebar.slider("Weight for C", 0.0, 1.0, 1.0)
+NP = st.sidebar.slider("Number of People (NP) on a scale of 1 to 10000", 1, 10000, 1)
+W_NP = st.sidebar.slider("Weight for NP", 1.0, 5.0, 1.0)
 
-R = st.sidebar.slider("Expected revenue from selling the tool (R) per year in $1000s", 0.0, 1000.0, 200.0)
-W_R = st.sidebar.slider("Weight for R", 0.0, 1.0, 1.0)
+AHW = st.sidebar.slider("Average Hourly Wage for Development Team (AHW) in $", 20.0, 200.0, 20.0)
 
 Tb = st.sidebar.slider("Time to build the tool internally (Tb) in months", 1, 48, 12)
-W_Tb = st.sidebar.slider("Weight for Tb", 0.0, 1.0, 1.0)
 
-CS = st.sidebar.slider("Potential impact on customer satisfaction (CS) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_CS = st.sidebar.slider("Weight for CS", 0.0, 1.0, 1.0)
+IC = st.sidebar.slider("Infrastructure Costs (IC) in $1000s", 0.0, 1000.0, 100.0)
+
+SC = st.sidebar.slider("Support Cost (SC) in $1000", 0.0, 1000.0, 100.0)
+
+MCost = st.sidebar.slider("Miscellaneous Cost (MCost) in $1000", 0.0, 1000.0, 200.0)
+
+# Calculate the cost
+C = AHW*NP*(Tb*4)+IC+SC+MCost
+
+# Define the range for displaying C
+min_C = 0.0
+max_C = 1000000.0
+
+# Display C within the defined range
+st.sidebar.write("## Total Cost (C):", max(min(C, max_C), min_C))
+
+R = st.sidebar.slider("Expected revenue from selling the tool (R) per year in $1000s", 0.0, 1000.0, 200.0)
+W_R = st.sidebar.slider("Weight for R", 1.0, 5.0, 1.0)
 
 SG = st.sidebar.slider("Alignment with strategic goals (SG) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_SG = st.sidebar.slider("Weight for SG", 0.0, 1.0, 1.0)
+W_SG = st.sidebar.slider("Weight for SG", 1.0, 5.0, 1.0)
 
 AR = st.sidebar.slider("Availability of resources (AR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_AR = st.sidebar.slider("Weight for AR", 0.0, 1.0, 1.0)
-
-NP = st.sidebar.slider("Number of People (NP) on a scale of 1 to 100", 1, 10000, 1)
-W_NP = st.sidebar.slider("Weight for NP", 0.0, 1.0, 1.0)
+W_AR = st.sidebar.slider("Weight for AR", 1.0, 5.0, 1.0)
 
 MC = st.sidebar.slider("Market Competition (MC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_MC = st.sidebar.slider("Weight for MC", 0.0, 1.0, 1.0)
+W_MC = st.sidebar.slider("Weight for MC", 1.0, 5.0, 1.0)
 
-TC = st.sidebar.slider("Technical Complexity (TC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_TC = st.sidebar.slider("Weight for TC", 0.0, 1.0, 1.0)
+TC = st.sidebar.slider("Technical Complexity (TC) on a scale of 0 to 10", 0.0, 10.0, 0.0) #Possibly Delete 
+W_TC = st.sidebar.slider("Weight for TC", 1.0, 5.0, 1.0) 
 
 RR = st.sidebar.slider("Regulatory Risks (RR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_RR = st.sidebar.slider("Weight for RR", 0.0, 1.0, 1.0)
-
-SA = st.sidebar.slider("Skills Availability (SA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_SA = st.sidebar.slider("Weight for SA", 0.0, 1.0, 1.0)
-
-INP = st.sidebar.slider("Impact of Not Doing the Project (INP) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_INP = st.sidebar.slider("Weight for INP", 0.0, 1.0, 1.0)
+W_RR = st.sidebar.slider("Weight for RR", 1.0, 5.0, 1.0)
 
 MRA = st.sidebar.slider("Market Readiness and Acceptance (MRA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_MRA = st.sidebar.slider("Weight for MRA", 0.0, 1.0, 1.0)
+W_MRA = st.sidebar.slider("Weight for MRA", 1.0, 5.0, 1.0)
+
 
 # Calculate net gain and time-adjusted gain
-G = W_E*E - W_F*F*W_C*C*W_Tb*Tb + W_R*R + W_CS*CS + W_SG*SG + W_AR*AR + W_NP*NP + W_MC*MC + W_TC*TC + W_RR*RR + W_SA*SA + W_INP*INP + W_MRA*MRA
+G = (W_E*E*1000-C) - W_F*F + W_R*R + W_SG*SG + W_AR*AR - W_MC*MC - W_TC*TC - W_RR*RR + W_MRA*MRA
 G_prime = G / Tb
 
 
@@ -75,8 +83,34 @@ G_prime = G / Tb
 st.write(f"The net gain (G) from building the tool internally is: {G} units")
 st.write(f"The time-adjusted gain (G') is: {G_prime} units per quarter")
 
+# Define the threshold values for the scorecard tiers
+threshold_good = 1500  # Adjust this threshold based on your specific requirements
+threshold_moderate = 200  # Adjust this threshold based on your specific requirements
+threshold_poor = 0.0  # Adjust this threshold based on your specific requirements
+
+# Create the scorecard based on G
+if G >= threshold_good:
+    scorecard_G = "Good"
+elif G >= threshold_moderate:
+    scorecard_G = "Moderate"
+else:
+    scorecard_G = "Poor"
+
+# Create the scorecard based on G_prime
+if G_prime >= threshold_good/Tb:
+    scorecard_G_prime = "Good"
+elif G_prime >= threshold_moderate/Tb:
+    scorecard_G_prime = "Moderate"
+else:
+    scorecard_G_prime = "Poor"
+
+# Display the scorecard results
+st.write(f"Scorecard for G: {scorecard_G}")
+st.write(f"Scorecard for G_prime: {scorecard_G_prime}")
+
+
 # Interpretation
-if G_prime > 10:
+if G_prime > 40:
     st.success("This project is a good investment.")
 elif G_prime < 0:
     st.error("This project is a poor investment.")
@@ -85,8 +119,8 @@ else:
 
 # Sensitivity analysis
 st.write("## Sensitivity Analysis")
-variables = ["E", "F", "C", "R", "Tb", "CS", "SG", "AR", "NP", "MC", "TC", "RR", "SA", "INP", "MRA"]
-values = [E, F, C, R, Tb, CS, SG, AR, NP, MC, TC, RR, SA, INP, MRA]
+variables = ["E", "F", "C", "R", "Tb", "SG", "AR", "NP", "MC", "TC", "RR", "MRA"]
+values = [E, F, C, R, Tb, SG, AR, NP, MC, TC, RR, MRA]
 sensitivity = []
 for i in range(len(variables)):
     new_values = values.copy()
@@ -106,7 +140,7 @@ for _ in range(N):
 plt.hist(simulations, bins=50)
 plt.xlabel('Time-adjusted Gain')
 plt.ylabel('Frequency')
-st.pyplot()
+# st.pyplot()
 
 
 # Explanation of formulas
@@ -123,38 +157,7 @@ st.write("## Additional Features")
 st.write("""
 - **Scenario Analysis**: This allows you to define different scenarios (e.g., best case, worst case, most likely case) and see how they affect the results. You can define a scenario by specifying values for each variable, and the app will calculate G and G' for that scenario.
 - **Risk Analysis**: This allows you to define different levels of risk tolerance and see how they affect the decision to build or hold. For example, if you have a high risk tolerance, you might be willing to proceed with a project even if G' is negative.
-- **Interactive Visualization**: This allows you to explore the relationship between the variables and the results in a more interactive way. For example, you could use a scatter plot to visualize the relationship between E and G', or a bar chart to compare the sensitivity of different variables.
 """)
-
-
-# Interactive real-time impact visualization
-st.write("## Real-time Impact Visualization")
-
-# Create a figure
-fig = go.Figure()
-
-# Add traces for net gain and time-adjusted gain
-fig.add_trace(go.Scatter(x=variables, y=[G]*len(variables), mode='lines', name='Net Gain'))
-fig.add_trace(go.Scatter(x=variables, y=[G_prime]*len(variables), mode='lines', name='Time-adjusted Gain'))
-
-# Update layout
-fig.update_layout(title='Real-time Impact of Changes in Variables',
-                   xaxis_title='Variables',
-                   yaxis_title='Value',
-                   autosize=False,
-                   width=500,
-                   height=500,
-                   margin=dict(l=50, r=50, b=100, t=100, pad=4))
-
-# Add sliders
-sliders = [dict(active=0, pad={"t": 1}, steps=[])]
-for i, var in enumerate(variables):
-    step = dict(method="update", label = f"{var}", args=[{"x": [variables], "y": [[G]*len(variables), [G_prime]*len(variables)]}])
-    sliders[0]["steps"].append(step)
-fig.update_layout(sliders=sliders)
-
-st.plotly_chart(fig)
-
 
 # Save and load scenarios
 st.write("## Save and Load Scenarios")
@@ -185,6 +188,11 @@ save_button = st.button("Save Scenario")
 
 if save_button:
     scenario_name = st.text_input("Enter a name for the scenario:")
+
+    # Load existing data from the JSON file
+    with open("scenarios.json", "r") as file:
+        scenario_data = json.load(file)
+
     if scenario_name:
         scenario_data[scenario_name] = {
             "E": E,
@@ -192,15 +200,12 @@ if save_button:
             "C": C,
             "R": R,
             "Tb": Tb,
-            "CS": CS,
             "SG": SG,
             "AR": AR,
             "NP": NP,
             "MC": MC,
             "TC": TC,
             "RR": RR,
-            "SA": SA,
-            "INP": INP,
             "MRA": MRA
         }
 
@@ -210,6 +215,8 @@ if save_button:
         st.success("Scenario saved successfully!")
 
 
+
+
 # Load scenario dropdown
 load_button = st.button("Load Scenario")
 
@@ -217,7 +224,27 @@ if load_button:
     with open("scenarios.json", "r") as file:
         scenario_data = json.load(file)
     
-    scenario_names = [name for name in scenario_data.keys() if not isinstance(scenario_data[name], dict)]
+    # scenario_names = [name for name in scenario_data.keys() if not isinstance(scenario_data[name], dict)]
+    scenario_names = []
+    for name in list(scenario_data.keys()):
+        scenario_names.append(name)
+
     scenario_name = st.selectbox("Select a scenario to load:", scenario_names)
     if scenario_name:
         loaded_data = scenario_data[scenario_name]
+        print(loaded_data)
+        E = loaded_data['E']
+        F = loaded_data['F']
+        C = loaded_data['C']
+        R = loaded_data['R']
+        Tb = loaded_data['Tb']
+        SG = loaded_data['SG']
+        AR = loaded_data['AR']
+        NP = loaded_data['NP']
+        MC = loaded_data['MC']
+        TC = loaded_data['TC']
+        RR = loaded_data['RR']
+        MRA = loaded_data['MRA']
+
+        st.empty()
+        st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, E)
