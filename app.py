@@ -10,7 +10,6 @@ import copy
 import time
 
 
-
 # Logo
 st.image("creospan_logo_main.png", use_column_width=True)
 
@@ -20,6 +19,7 @@ st.title("AI Project Evaluation Tool")
 st.write("""
 This tool helps you make the decision on whether your company should build new AI assets or wait until technology is more sophisticated before making a formal investment. It uses a number of various input factors to get the formula to equal G which is your net gain (positive or negative) from such an investment. 
 """)
+
 
 # Input sliders for each variable
 E = st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, 200.0)
@@ -162,89 +162,25 @@ st.write("""
 # Save and load scenarios
 st.write("## Save and Load Scenarios")
 
+# Input for scenario name
+scenario_name = st.text_input("Scenario name")
 
-# Save and Load Scenarios
-scenario_data = {}
+# Button to save scenario
+if st.button("Save scenario"):
+    # Save values to a JSON file
+    scenario = {var: val for var, val in zip(variables, values)}
+    with open(f"{scenario_name}.json", "w") as f:
+        json.dump(scenario, f)
+    st.write(f"Scenario '{scenario_name}' saved.")
 
-# Function to save a scenario
-def save_scenario(name, data):
-    scenario_data[name] = copy.deepcopy(data)
-    with open("scenarios.json", "w") as file:
-        json.dump(scenario_data, file)
-
-# Function to load a scenario
-def load_scenario(name):
-    global scenario_data  # Add this line to access the global scenario_data dictionary
-    with open("scenarios.json", "r") as file:
-        scenario_data = json.load(file)
-        if name in scenario_data:
-            return scenario_data[name]
-        else:
-            st.error("Scenario not found!")
-
-
-# Save scenario
-save_button = st.button("Save Scenario")
-
-if save_button:
-    scenario_name = st.text_input("Enter a name for the scenario:")
-
-    # Load existing data from the JSON file
-    with open("scenarios.json", "r") as file:
-        scenario_data = json.load(file)
-
-    if scenario_name:
-        scenario_data[scenario_name] = {
-            "E": E,
-            "F": F,
-            "C": C,
-            "R": R,
-            "Tb": Tb,
-            "SG": SG,
-            "AR": AR,
-            "NP": NP,
-            "MC": MC,
-            "TC": TC,
-            "RR": RR,
-            "MRA": MRA
-        }
-
-        with open("scenarios.json", "w") as file:
-            json.dump(scenario_data, file, indent=4)
-
-        st.success("Scenario saved successfully!")
-
-
-
-
-# Load scenario dropdown
-load_button = st.button("Load Scenario")
-
-if load_button:
-    with open("scenarios.json", "r") as file:
-        scenario_data = json.load(file)
-    
-    # scenario_names = [name for name in scenario_data.keys() if not isinstance(scenario_data[name], dict)]
-    scenario_names = []
-    for name in list(scenario_data.keys()):
-        scenario_names.append(name)
-
-    scenario_name = st.selectbox("Select a scenario to load:", scenario_names)
-    if scenario_name:
-        loaded_data = scenario_data[scenario_name]
-        print(loaded_data)
-        E = loaded_data['E']
-        F = loaded_data['F']
-        C = loaded_data['C']
-        R = loaded_data['R']
-        Tb = loaded_data['Tb']
-        SG = loaded_data['SG']
-        AR = loaded_data['AR']
-        NP = loaded_data['NP']
-        MC = loaded_data['MC']
-        TC = loaded_data['TC']
-        RR = loaded_data['RR']
-        MRA = loaded_data['MRA']
-
-        st.empty()
-        st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, E)
+# Button to load scenario
+if st.button("Load scenario"):
+    # Load values from a JSON file
+    try:
+        with open(f"{scenario_name}.json", "r") as f:
+            scenario = json.load(f)
+        for var, val in scenario.items():
+            st.write(f"{var}: {val}")
+        st.write(f"Scenario '{scenario_name}' loaded.")
+    except FileNotFoundError:
+        st.write(f"Scenario '{scenario_name}' not found.")
