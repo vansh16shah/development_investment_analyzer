@@ -13,109 +13,81 @@ import time
 # Logo
 st.image("creospan_logo_main.png", use_column_width=True)
 
+def calculate_G(W_E, E, W_F, F, W_R, R, W_SG, SG, W_AR, AR, W_MC, MC, W_TC, TC, W_RR, RR, W_MRA, MRA, C):
+    G = (W_E*E*1000-C) - W_F*F + W_R*R + W_SG*SG + W_AR*AR - W_MC*MC - W_TC*TC - W_RR*RR + W_MRA*MRA
+    return G
+
+def calculate_G_prime(G, Tb):
+    G_prime = G / Tb
+    return G_prime
 
 # Title and introduction
-st.title("AI Project Evaluation Tool")
+st.title('Project Feasibility Analysis Tool')
 st.write("""
 This tool helps you make the decision on whether your company should build new AI assets or wait until technology is more sophisticated before making a formal investment. It uses a number of various input factors to get the formula to equal G which is your net gain (positive or negative) from such an investment. 
 """)
 
+num_projects = st.number_input('Enter number of projects', min_value=1, value=1, step=1)
+project_data = []
 
-# Input sliders for each variable
-E = st.sidebar.slider("Expected value (ROI) of the project (E) in $1000s", 0.0, 1000.0, 200.0)
-W_E = st.sidebar.slider("Weight for E", 1.0, 5.0, 1.0)
+for i in range(num_projects):
+    st.subheader(f'Project {i+1}')
+    
+    # Input sliders for each variable
+    E = st.sidebar.slider(f"Expected value (ROI) of the project (E) for Project {i+1} in $1000s", 0.0, 1000.0, 200.0)
+    W_E = st.sidebar.slider(f"Weight for E for Project {i+1}", 1.0, 5.0, 1.0)
 
-F = st.sidebar.slider("Risk of failure (F) as a fraction", 0.0, 1.0, 0.1)
-W_F = st.sidebar.slider("Weight for F", 1.0, 5.0, 1.0)
+    F = st.sidebar.slider(f"Risk of failure (F) for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_F = st.sidebar.slider(f"Weight for F for Project {i+1}", 1.0, 5.0, 1.0)
 
-NP = st.sidebar.slider("Number of People (NP) on a scale of 1 to 10000", 1, 10000, 1)
-W_NP = st.sidebar.slider("Weight for NP", 1.0, 5.0, 1.0)
+    R = st.sidebar.slider(f"Risk of R for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_R = st.sidebar.slider(f"Weight for R for Project {i+1}", 1.0, 5.0, 1.0)
 
-AHW = st.sidebar.slider("Average Hourly Wage for Development Team (AHW) in $", 20.0, 200.0, 20.0)
+    SG = st.sidebar.slider(f"SG for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_SG = st.sidebar.slider(f"Weight for SG for Project {i+1}", 1.0, 5.0, 1.0)
 
-Tb = st.sidebar.slider("Time to build the tool internally (Tb) in months", 1, 48, 12)
+    AR = st.sidebar.slider(f"AR for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_AR = st.sidebar.slider(f"Weight for AR for Project {i+1}", 1.0, 5.0, 1.0)
 
-IC = st.sidebar.slider("Infrastructure Costs (IC) in $1000s", 0.0, 1000.0, 100.0)
+    MC = st.sidebar.slider(f"MC for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_MC = st.sidebar.slider(f"Weight for MC for Project {i+1}", 1.0, 5.0, 1.0)
 
-SC = st.sidebar.slider("Support Cost (SC) in $1000", 0.0, 1000.0, 100.0)
+    TC = st.sidebar.slider(f"TC for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_TC = st.sidebar.slider(f"Weight for TC for Project {i+1}", 1.0, 5.0, 1.0)
 
-MCost = st.sidebar.slider("Miscellaneous Cost (MCost) in $1000", 0.0, 1000.0, 200.0)
+    RR = st.sidebar.slider(f"RR for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_RR = st.sidebar.slider(f"Weight for RR for Project {i+1}", 1.0, 5.0, 1.0)
 
-# Calculate the cost
-C = AHW*NP*(Tb*4)+IC+SC+MCost
+    MRA = st.sidebar.slider(f"MRA for Project {i+1} as a fraction", 0.0, 1.0, 0.1)
+    W_MRA = st.sidebar.slider(f"Weight for MRA for Project {i+1}", 1.0, 5.0, 1.0)
 
-# Define the range for displaying C
-min_C = 0.0
-max_C = 1000000.0
+    Tb = st.sidebar.slider(f"Time to break even (Tb) for Project {i+1} in years", 0.0, 5.0, 1.0)
 
-# Display C within the defined range
-st.sidebar.write("## Total Cost (C):", max(min(C, max_C), min_C))
+    AHW = st.sidebar.slider(f"Average hourly wage (AHW) for Project {i+1} in $", 0.0, 100.0, 20.0)
+    NP = st.sidebar.slider(f"Number of personnel (NP) for Project {i+1}", 1, 100, 10)
+    IC = st.sidebar.slider(f"Implementation costs (IC) for Project {i+1} in $1000s", 0.0, 1000.0, 100.0)
+    SC = st.sidebar.slider(f"Support costs (SC) for Project {i+1} in $1000s", 0.0, 1000.0, 100.0)
+    MCost = st.sidebar.slider(f"Maintenance costs (MCost) for Project {i+1} in $1000s", 0.0, 1000.0, 100.0)
 
-R = st.sidebar.slider("Expected revenue from selling the tool (R) per year in $1000s", 0.0, 1000.0, 200.0)
-W_R = st.sidebar.slider("Weight for R", 1.0, 5.0, 1.0)
+    # Calculate the cost
+    C = AHW*NP*(Tb*4)+IC+SC+MCost
 
-SG = st.sidebar.slider("Alignment with strategic goals (SG) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_SG = st.sidebar.slider("Weight for SG", 1.0, 5.0, 1.0)
+    # Calculate net gain and time-adjusted gain
+    G = calculate_G(W_E, E, W_F, F, W_R, R, W_SG, SG, W_AR, AR, W_MC, MC, W_TC, TC, W_RR, RR, W_MRA, MRA, C)
+    G_prime = calculate_G_prime(G, Tb)
 
-AR = st.sidebar.slider("Availability of resources (AR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_AR = st.sidebar.slider("Weight for AR", 1.0, 5.0, 1.0)
+project_data.append([G, G_prime])
 
-MC = st.sidebar.slider("Market Competition (MC) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_MC = st.sidebar.slider("Weight for MC", 1.0, 5.0, 1.0)
+# Display individual project results
+st.write(f"The net gain (G) for Project {i+1}: {G} units")
+st.write(f"The time-adjusted gain (G') for Project {i+1}: {G_prime} units per quarter")
 
-TC = st.sidebar.slider("Technical Complexity (TC) on a scale of 0 to 10", 0.0, 10.0, 0.0) #Possibly Delete 
-W_TC = st.sidebar.slider("Weight for TC", 1.0, 5.0, 1.0) 
-
-RR = st.sidebar.slider("Regulatory Risks (RR) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_RR = st.sidebar.slider("Weight for RR", 1.0, 5.0, 1.0)
-
-MRA = st.sidebar.slider("Market Readiness and Acceptance (MRA) on a scale of 0 to 10", 0.0, 10.0, 0.0)
-W_MRA = st.sidebar.slider("Weight for MRA", 1.0, 5.0, 1.0)
-
-
-# Calculate net gain and time-adjusted gain
-G = (W_E*E*1000-C) - W_F*F + W_R*R + W_SG*SG + W_AR*AR - W_MC*MC - W_TC*TC - W_RR*RR + W_MRA*MRA
-G_prime = G / Tb
-
-
+df = pd.DataFrame(project_data, columns=['G', 'G_prime'])
+st.dataframe(df)
 
 # Display results
 st.write(f"The net gain (G) from building the tool internally is: {G} units")
 st.write(f"The time-adjusted gain (G') is: {G_prime} units per quarter")
-
-# Define the threshold values for the scorecard tiers
-threshold_good = 1500  # Adjust this threshold based on your specific requirements
-threshold_moderate = 200  # Adjust this threshold based on your specific requirements
-threshold_poor = 0.0  # Adjust this threshold based on your specific requirements
-
-# Create the scorecard based on G
-if G >= threshold_good:
-    scorecard_G = "Good"
-elif G >= threshold_moderate:
-    scorecard_G = "Moderate"
-else:
-    scorecard_G = "Poor"
-
-# Create the scorecard based on G_prime
-if G_prime >= threshold_good/Tb:
-    scorecard_G_prime = "Good"
-elif G_prime >= threshold_moderate/Tb:
-    scorecard_G_prime = "Moderate"
-else:
-    scorecard_G_prime = "Poor"
-
-# Display the scorecard results
-st.write(f"Scorecard for G: {scorecard_G}")
-st.write(f"Scorecard for G_prime: {scorecard_G_prime}")
-
-
-# Interpretation
-if G_prime > 40:
-    st.success("This project is a good investment.")
-elif G_prime < 0:
-    st.error("This project is a poor investment.")
-else:
-    st.warning("This project is a moderate investment, and the decision to build or hold would depend on other factors, such as the organization's strategic goals, the availability of resources, and the potential impact on customers and employees.")
 
 # Sensitivity analysis
 st.write("## Sensitivity Analysis")
